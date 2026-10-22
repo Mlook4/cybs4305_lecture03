@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBS 4305 - Lecture 03: Security Risk Analysis & Methodologies</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Share+Tech+Mono&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* BASE CSS VARIABLES */
+        :root {
+            --bg-color: #080b12;
+            --surface-color: #121824;
+            --surface-accent: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.5);
+            --highlight-yellow: #facc15;
+            --highlight-green: #4ade80;
+            --highlight-purple: #c084fc;
+            --correct-color: #22c55e;
+            --wrong-color: #ef4444;
+            --border-radius: 12px;
+            --font-main: 'Poppins', sans-serif;
+            --font-arabic: 'Cairo', sans-serif;
+            --card-border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        /* 8 HIGH-CONTRAST THEMES */
+        body.theme-cyberpunk {
+            --bg-color: #0a0118; --surface-color: #160233; --surface-accent: #280454;
+            --text-primary: #ffffff; --text-secondary: #d8b4fe;
+            --accent-primary: #f06292; --accent-glow: rgba(240, 98, 146, 0.6);
+            --highlight-yellow: #ffd54f; --card-border: 1px solid rgba(240, 98, 146, 0.4);
+        }
+        body.theme-matrix {
+            --bg-color: #020a02; --surface-color: #051a05; --surface-accent: #0a2e0a;
+            --text-primary: #e8ffe8; --text-secondary: #86efac;
+            --accent-primary: #22c55e; --accent-glow: rgba(34, 197, 94, 0.6);
+            --highlight-yellow: #fef08a; --font-main: 'Share Tech Mono', monospace;
+            --card-border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+        body.theme-synthwave {
+            --bg-color: #110826; --surface-color: #210d47; --surface-accent: #37146e;
+            --text-primary: #ffffff; --text-secondary: #f472b6;
+            --accent-primary: #fb923c; --accent-glow: rgba(251, 146, 60, 0.6);
+            --highlight-yellow: #fef08a; --card-border: 1px solid rgba(251, 146, 60, 0.4);
+        }
+        body.theme-deepsea {
+            --bg-color: #031321; --surface-color: #0a2540; --surface-accent: #11385f;
+            --text-primary: #f0f9ff; --text-secondary: #7dd3fc;
+            --accent-primary: #06b6d4; --accent-glow: rgba(6, 182, 212, 0.6);
+            --highlight-yellow: #fef08a; --card-border: 1px solid rgba(6, 182, 212, 0.4);
+        }
+        body.theme-emerald {
+            --bg-color: #022c22; --surface-color: #064e3b; --surface-accent: #047857;
+            --text-primary: #ecfdf5; --text-secondary: #6ee7b7;
+            --accent-primary: #10b981; --accent-glow: rgba(16, 185, 129, 0.6);
+            --highlight-yellow: #fef08a; --card-border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        body.theme-crimson {
+            --bg-color: #1a0505; --surface-color: #3b0707; --surface-accent: #5c0a0a;
+            --text-primary: #fff5f5; --text-secondary: #fca5a5;
+            --accent-primary: #f87171; --accent-glow: rgba(248, 113, 113, 0.6);
+            --highlight-yellow: #fef08a; --card-border: 1px solid rgba(248, 113, 113, 0.4);
+        }
+        body.theme-violet {
+            --bg-color: #120324; --surface-color: #240647; --surface-accent: #3b0a70;
+            --text-primary: #faf5ff; --text-secondary: #c084fc;
+            --accent-primary: #a855f7; --accent-glow: rgba(168, 85, 247, 0.6);
+            --highlight-yellow: #fef08a; --card-border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+
+        /* GLOBAL RESET & STYLES */
+        * {
+            box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-main);
+            transition: background-color 0.8s ease, color 0.4s ease, border-color 0.5s ease;
+        }
+
+        body {
+            background-color: var(--bg-color); color: var(--text-primary);
+            overflow-x: hidden; line-height: 1.6;
+        }
+
+        /* TRANSLATION CSS */
+        .arabic-text {
+            display: block;
+            direction: rtl;
+            text-align: right;
+            font-family: var(--font-arabic);
+            color: inherit;
+            opacity: 0.85;
+            font-size: 0.95em;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+        }
+        
+        /* Specific Alignments */
+        h1 .arabic-text, h2 .arabic-text, h3 .arabic-text { text-align: center; border-top: none; }
+        th .arabic-text, td .arabic-text { text-align: center; border-top: none; font-size: 0.9em; }
+        .quiz-option .arabic-text, .flip-card-front .arabic-text, .flip-card-back .arabic-text, .formula-box .arabic-text { text-align: center; border-top: none; }
+        .btn-action .arabic-text { display: inline-block; padding: 0; border: none; margin: 0 0 0 8px; font-size: 1em; opacity: 1; }
+        
+        /* The Toggle Hider */
+        .hide-arabic .arabic-text {
+            display: none !important;
+        }
+
+        /* CANVAS BACKGROUND */
+        #bg-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; opacity: 0.55; pointer-events: none;
+        }
+
+        /* HUD BAR & THEME CONTROL */
+        #hud {
+            position: sticky; top: 0; background: rgba(8, 11, 18, 0.88);
+            backdrop-filter: blur(12px); padding: 12px 25px; display: flex;
+            justify-content: space-between; align-items: center; z-index: 100;
+            border-bottom: 2px solid var(--accent-primary); box-shadow: 0 0 25px var(--accent-glow);
+            flex-wrap: wrap; gap: 12px;
+        }
+
+        .hud-group { display: flex; align-items: center; gap: 10px; }
+
+        .hud-stat {
+            display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.06); padding: 6px 14px; border-radius: var(--border-radius);
+            border: 1px solid var(--accent-primary); text-shadow: 0 0 5px var(--accent-glow);
+        }
+
+        /* THEME TIMER CONTROLS */
+        .theme-ctrl-btn {
+            background: var(--accent-primary); color: #000; border: none;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            font-weight: bold; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .theme-ctrl-btn:hover { transform: scale(1.15); box-shadow: 0 0 12px var(--accent-glow); }
+
+        .timer-bar-container { width: 110px; background: #1e293b; border-radius: 6px; height: 8px; overflow: hidden; position: relative; }
+        .timer-bar-fill { height: 100%; width: 100%; background: var(--accent-primary); transition: width 1s linear; }
+
+        /* AUDIO PLAYER (FLOATING) */
+        #audio-player {
+            position: fixed; bottom: 20px; left: 20px; z-index: 100;
+            background: var(--surface-color); padding: 12px 18px; border-radius: var(--border-radius);
+            border: 2px solid var(--accent-primary); display: flex; gap: 12px; align-items: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+        }
+
+        .audio-btn {
+            background: var(--accent-primary); color: #000; border: none;
+            width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+            font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s;
+        }
+        .audio-btn:hover { transform: scale(1.1); }
+        input[type="range"] { accent-color: var(--accent-primary); cursor: pointer; }
+
+        /* MAIN CONTAINER */
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+
+        /* HEADER */
+        header { text-align: center; margin-bottom: 45px; }
+        header h1 {
+            font-size: 2.6rem; color: var(--accent-primary); text-shadow: 0 0 20px var(--accent-glow);
+            text-transform: uppercase; letter-spacing: 1px; font-weight: 800; margin-bottom: 8px;
+        }
+        header .subtitle { font-size: 1.2rem; color: var(--text-secondary); font-weight: 500; }
+        header .univ-tag { font-size: 0.95rem; color: var(--accent-primary); opacity: 0.9; margin-top: 5px; }
+
+        /* SECTION HEADERS */
+        h2.section-title {
+            font-size: 1.8rem; margin: 40px 0 20px 0; border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 8px; display: block; text-align: center; text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* CARDS & HIGHLIGHTS */
+        .card {
+            background: var(--surface-color); padding: 25px 30px; border-radius: var(--border-radius);
+            margin-bottom: 25px; border: var(--card-border); box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .highlight-def {
+            background: rgba(56, 189, 248, 0.12); border-left: 4px solid var(--accent-primary);
+            padding: 12px 18px; border-radius: 6px; margin: 12px 0; font-size: 1.05rem;
+        }
+
+        .badge-tag {
+            display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.82rem;
+            font-weight: 700; text-transform: uppercase; margin-right: 6px;
+        }
+        .badge-quant { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+        .badge-qual { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid #a855f7; }
+        .badge-alert { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+
+        .term-key { color: var(--highlight-yellow); font-weight: 700; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+        /* FLIP CARDS */
+        .flip-card { height: 260px; perspective: 1000px; cursor: pointer; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; border-radius: var(--border-radius); background: var(--surface-color);
+            border: var(--card-border);
+        }
+        .flip-card-front { font-size: 1.6rem; font-weight: 700; color: var(--accent-primary); }
+        .flip-card-back { transform: rotateY(180deg); font-size: 1rem; color: var(--text-primary); background: var(--surface-accent); }
+
+        /* FORMULAS & CALCULATOR */
+        .formula-box {
+            background: rgba(0,0,0,0.4); border: 2px dashed var(--accent-primary); padding: 20px;
+            border-radius: var(--border-radius); text-align: center; margin: 15px 0;
+        }
+        .formula-box h3 { font-family: monospace; font-size: 2rem; color: var(--accent-primary); text-shadow: 0 0 10px var(--accent-glow); }
+
+        .calc-input { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        input[type="number"] {
+            padding: 12px; border-radius: 8px; border: 1px solid var(--accent-primary);
+            background: rgba(0,0,0,0.5); color: #fff; font-size: 1rem; font-weight: 600; outline: none;
+        }
+        input[type="number"]:focus { box-shadow: 0 0 10px var(--accent-glow); }
+
+        .btn-action {
+            padding: 12px 24px; background: var(--accent-primary); color: #000; border: none;
+            border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1rem;
+            text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s;
+        }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-glow); filter: brightness(1.1); }
+
+        .calc-result-box {
+            font-size: 1.3rem; font-weight: 700; margin-top: 15px; color: #000;
+            background: var(--accent-primary); padding: 12px; border-radius: 8px; text-align: center;
+        }
+
+        /* TABLES */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: var(--border-radius); overflow: hidden; }
+        th, td { border: 1px solid rgba(255,255,255,0.15); padding: 12px 15px; text-align: left; }
+        th { background: rgba(56, 189, 248, 0.2); color: var(--accent-primary); font-size: 1.05rem; }
+        tr:hover { background: rgba(255,255,255,0.03); }
+
+        /* QUIZ */
+        .quiz-option {
+            background: rgba(0,0,0,0.3); padding: 15px 20px; border-radius: 8px;
+            margin-bottom: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s; font-size: 1.05rem;
+        }
+        .quiz-option:hover { border-color: var(--accent-primary); background: rgba(56, 189, 248, 0.1); transform: translateX(5px); }
+        .quiz-option.correct { background: rgba(34, 197, 94, 0.25); border-color: var(--correct-color); color: #4ade80; font-weight: 700; }
+        .quiz-option.wrong { background: rgba(239, 68, 68, 0.25); border-color: var(--wrong-color); color: #f87171; }
+
+        .quiz-feedback {
+            display: none; padding: 15px; margin-top: 12px; border-radius: 8px;
+            background: rgba(0,0,0,0.6); border-left: 4px solid var(--accent-primary); font-size: 1rem;
+        }
+
+        /* FLASH EFFECT ON THEME CHANGE */
+        .flash-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: white; z-index:9999; pointer-events: none; opacity: 0; transition: opacity 0.4s; }
+        .flash-active { opacity: 0.2 !important; }
+
+        @media (max-width: 850px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            header h1 { font-size: 1.8rem; }
+            #hud { justify-content: center; }
+        }
+    </style>
+</head>
+<body class="theme-cyberpunk hide-arabic" onload="initApp()">
+
+    <div class="flash-overlay" id="flash"></div>
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- HUD BAR -->
+    <div id="hud">
+        <!-- THEME TIMER & CONTROLS -->
+        <div class="hud-group">
+            <div class="hud-stat">
+                <i class="fas fa-palette"></i> Vibe Shift:
+                <button class="theme-ctrl-btn" onclick="prevTheme()" title="Previous Theme"><i class="fas fa-chevron-left"></i></button>
+                <button class="theme-ctrl-btn" id="timer-toggle-btn" onclick="toggleTimer()" title="Pause/Play Theme Timer"><i class="fas fa-pause"></i></button>
+                <button class="theme-ctrl-btn" onclick="nextTheme()" title="Next Theme"><i class="fas fa-chevron-right"></i></button>
+                <div class="timer-bar-container"><div class="timer-bar-fill" id="timer-fill"></div></div>
+                <span id="time-left" style="width: 24px; text-align: center;">30</span>s
+            </div>
+            <!-- TRANSLATION TOGGLE BUTTON -->
+            <button class="theme-ctrl-btn" onclick="toggleTranslation()" title="Toggle Arabic Translation" style="width: auto; padding: 0 15px; border-radius: 20px; font-family: 'Cairo', sans-serif;">
+                ع / EN
+            </button>
+        </div>
+
+        <div class="hud-group">
+            <div class="hud-stat"><i class="fas fa-fire" style="color:#f97316;"></i> Streak: <span id="streak">1</span> Day</div>
+            <div class="hud-stat"><i class="fas fa-trophy" style="color:#facc15;"></i> Level: <span id="level">1</span></div>
+            <div class="hud-stat"><i class="fas fa-bolt" style="color:#38bdf8;"></i> XP: <span id="xp-counter">0</span></div>
+        </div>
+    </div>
+
+    <!-- AUDIO PLAYER (FLOATING) -->
+    <div id="audio-player">
+        <button class="audio-btn" id="play-btn" onclick="toggleAudio()"><i class="fas fa-play"></i></button>
+        <div style="display:flex; flex-direction:column; gap:2px;">
+            <span style="font-size:0.8rem; font-weight:700; color:var(--accent-primary);">LO-FI STUDY BEATS</span>
+            <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="0.3" onchange="changeVolume()">
+        </div>
+        <audio id="bg-music" loop>
+            <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <h1>CYBS 4305: Security Risk Analysis <div class="arabic-text">تحليل المخاطر الأمنية</div></h1>
+            <div class="subtitle">Lecture 03: Cyber Risk Assessment and Analysis Methodologies <div class="arabic-text">المحاضرة 03: تقييم المخاطر السيبرانية ومنهجيات التحليل</div></div>
+            <div class="univ-tag">University of Hafr Al Batin | College of Computer Science and Engineering <div class="arabic-text">جامعة حفر الباطن | كلية علوم وهندسة الحاسب الآلي</div></div>
+        </header>
+
+        <!-- SECTION 1: WHAT IS SRA & GOALS -->
+        <h2 class="section-title">1. Introduction to Security Risk Assessment <div class="arabic-text">1. مقدمة في تقييم المخاطر الأمنية</div></h2>
+        <div class="card" onclick="addXP(10)">
+            <h3><i class="fas fa-shield-halved" style="color:var(--accent-primary);"></i> What is Security Risk Assessment? <div class="arabic-text">ما هو تقييم المخاطر الأمنية؟</div></h3>
+            <div class="highlight-def">
+                <strong>Official Definition:</strong> An <span class="term-key">objective analysis</span> of the effectiveness of the current security controls that protect an organization's assets and a determination of the <span class="term-key">probability of losses</span> to those assets.
+                <div class="arabic-text"><strong>التعريف الرسمي:</strong> هو <span class="term-key">تحليل موضوعي</span> لمدى فعالية الضوابط الأمنية الحالية التي تحمي أصول المنظمة وتحديد <span class="term-key">احتمالية تعرض هذه الأصول للخسائر</span>.</div>
+            </div>
+            <div class="highlight-def">
+                <strong>The Ultimate Goal:</strong> To understand and measure security risks to information assets, enabling the organization to make <span class="term-key">informed decisions</span> to mitigate those risks and preserve its mission.
+                <div class="arabic-text"><strong>الهدف النهائي:</strong> فهم وقياس المخاطر الأمنية التي تهدد أصول المعلومات، مما يمكن المنظمة من اتخاذ <span class="term-key">قرارات مدروسة</span> للتخفيف من تلك المخاطر والحفاظ على مهمتها.</div>
+            </div>
+            <p style="margin-top:10px;"><strong>Key Takeaway:</strong> A complete assessment evaluates <span class="term-key">Assets, Threats, Vulnerabilities, Existing Controls, Likelihood, and Impact</span> to prioritize security improvements according to organizational risk.
+            <div class="arabic-text"><strong>الخلاصة الأساسية:</strong> التقييم الشامل يقيّم <span class="term-key">الأصول، التهديدات، الثغرات، الضوابط الحالية، الاحتمالية، والأثر</span> لترتيب أولويات التحسينات الأمنية بناءً على المخاطر التي تواجهها المنظمة.</div></p>
+        </div>
+
+        <!-- SECTION 2: SECURITY DRIVERS -->
+        <h2 class="section-title">2. Why is Risk Assessment a Priority? (Security Drivers) <div class="arabic-text">2. لماذا يعتبر تقييم المخاطر أولوية؟ (الدوافع الأمنية)</div></h2>
+        <div class="card grid-2" onclick="addXP(15)">
+            <div>
+                <h3><i class="fas fa-compass" style="color:var(--accent-primary);"></i> Security Drivers Comparison <div class="arabic-text">مقارنة الدوافع الأمنية</div></h3>
+                <p>Organizations are driven by several factors to implement security. However, a <span class="term-key">Risk-Driven</span> approach provides the most comprehensive strategy.
+                <div class="arabic-text">تندفع المنظمات بعدة عوامل لتطبيق الأمن. ومع ذلك، فإن النهج <span class="term-key">المدفوع بالمخاطر (Risk-Driven)</span> يوفر الاستراتيجية الأكثر شمولاً.</div></p>
+            </div>
+            <div>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li style="margin-bottom: 12px;">
+                        <span class="badge-tag badge-alert">Audit-Driven</span>
+                        <strong>Reactive:</strong> Focuses strictly on what is already known and documented.
+                        <div class="arabic-text"><span class="badge-tag badge-alert">مدفوع بالتدقيق</span> <strong>تفاعلي (رد فعل):</strong> يركز بصرامة على ما هو معروف وموثق بالفعل.</div>
+                    </li>
+                    <li style="margin-bottom: 12px;">
+                        <span class="badge-tag badge-qual">Technology-Driven</span>
+                        <strong>Can lead to gaps:</strong> Ignores administrative & physical controls.
+                        <div class="arabic-text"><span class="badge-tag badge-qual">مدفوع بالتكنولوجيا</span> <strong>قد يؤدي إلى فجوات:</strong> يتجاهل الضوابط الإدارية والمادية.</div>
+                    </li>
+                    <li style="margin-bottom: 12px;">
+                        <span class="badge-tag badge-qual">Compliance-Driven</span>
+                        <strong>Creates silos:</strong> Meets standards (e.g., HIPAA, PCI DSS) but lacks broad implementation guidance.
+                        <div class="arabic-text"><span class="badge-tag badge-qual">مدفوع بالامتثال</span> <strong>يخلق صوامع (انعزالية):</strong> يلبي المعايير (مثل HIPAA، PCI DSS) لكنه يفتقر إلى توجيهات التنفيذ الشاملة.</div>
+                    </li>
+                    <li style="margin-bottom: 12px;">
+                        <span class="badge-tag badge-quant">Risk-Driven</span>
+                        <strong>Most Complete:</strong> Addresses risk to organizational assets as the primary concern.
+                        <div class="arabic-text"><span class="badge-tag badge-quant">مدفوع بالمخاطر</span> <strong>الأكثر شمولاً:</strong> يعالج الخطر على أصول المنظمة باعتباره الاهتمام الأساسي.</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECTION 3: KEY TERMINOLOGY & EQUATION -->
+        <h2 class="section-title">3. Key Terminology & The Risk Equation <div class="arabic-text">3. المصطلحات الأساسية ومعادلة المخاطر</div></h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 15px;">(Hover or tap cards to flip and test your memory) <div class="arabic-text" style="text-align:center; border:none; margin:0; padding:0;">(مرر مؤشر الماوس أو انقر على البطاقات لقلبها واختبار ذاكرتك)</div></p>
+        <div class="grid-3">
+            <div class="flip-card" onclick="addXP(5)">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <i class="fas fa-database" style="font-size:2.2rem; margin-bottom:10px;"></i> Asset
+                        <div class="arabic-text" style="font-size:1rem; color:var(--text-primary); margin-top:10px;">الأصل (Asset)</div>
+                    </div>
+                    <div class="flip-card-back">
+                        Any resource, data, or item of value to the organization (<span class="term-key">tangible or intangible</span>).
+                        <div class="arabic-text" style="margin-top:10px;">أي مورد، بيانات، أو عنصر ذو قيمة للمنظمة (<span class="term-key">ملموس أو غير ملموس</span>).</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flip-card" onclick="addXP(5)">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <i class="fas fa-user-ninja" style="font-size:2.2rem; margin-bottom:10px;"></i> Threat Agent
+                        <div class="arabic-text" style="font-size:1rem; color:var(--text-primary); margin-top:10px;">عامل التهديد (Threat Agent)</div>
+                    </div>
+                    <div class="flip-card-back">
+                        The entity that may cause a threat to happen (e.g., <span class="term-key">nature, malicious hackers, employees</span>).
+                        <div class="arabic-text" style="margin-top:10px;">الكيان الذي قد يتسبب في حدوث تهديد (مثل <span class="term-key">الطبيعة، قراصنة الإنترنت، الموظفين</span>).</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flip-card" onclick="addXP(5)">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <i class="fas fa-bug" style="font-size:2.2rem; margin-bottom:10px;"></i> Vulnerability
+                        <div class="arabic-text" style="font-size:1rem; color:var(--text-primary); margin-top:10px;">الثغرة (Vulnerability)</div>
+                    </div>
+                    <div class="flip-card-back">
+                        A <span class="term-key">flaw or oversight</span> in an existing control that may allow a threat agent to exploit it.
+                        <div class="arabic-text" style="margin-top:10px;"><span class="term-key">خلل أو سهو</span> في ضابط أمني حالي قد يسمح لعامل التهديد باستغلاله.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flip-card" onclick="addXP(5)">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front">
+                        <i class="fas fa-triangle-exclamation" style="font-size:2.2rem; margin-bottom:10px;"></i> Security Risk
+                        <div class="arabic-text" style="font-size:1rem; color:var(--text-primary); margin-top:10px;">الخطر الأمني (Security Risk)</div>
+                    </div>
+                    <div class="flip-card-back">
+                        The <span class="term-key">loss potential</span> to an asset that will likely occur if a threat exploits a vulnerability.
+                        <div class="arabic-text" style="margin-top:10px;"><span class="term-key">احتمالية الخسارة</span> للأصل والتي من المرجح أن تحدث إذا استغل التهديد ثغرة ما.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="formula-box" onclick="addXP(10)">
+            <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 5px;">The Conceptual Core Formula: <div class="arabic-text" style="display:inline; border:none;">(المعادلة الأساسية المفاهيمية)</div></p>
+            <h3>Risk = Assets × Threat × Vulnerability</h3>
+            <p style="margin-top: 10px; font-size: 0.95rem;">Risk combines asset value, threat frequency, and vulnerability likelihood. Goal: Reduce likelihood, impact, or both.
+            <div class="arabic-text">الخطر يجمع بين قيمة الأصل، تكرار التهديد، واحتمالية الثغرة. الهدف: تقليل الاحتمالية، الأثر، أو كليهما.</div></p>
+        </div>
+
+        <!-- SECTION 4: MANAGEMENT PROCESS CYCLE -->
+        <h2 class="section-title">4. The Security Risk Management Cycle <div class="arabic-text">4. دورة إدارة المخاطر الأمنية</div></h2>
+        <div class="card grid-2" onclick="addXP(15)">
+            <div>
+                <h3><i class="fas fa-rotate" style="color:var(--accent-primary);"></i> The 4-Stage Continuous Cycle <div class="arabic-text">الدورة المستمرة من 4 مراحل</div></h3>
+                <p>Security Risk Assessment is one part of an ongoing operational cycle:
+                <div class="arabic-text">تقييم المخاطر الأمنية هو جزء واحد من دورة تشغيلية مستمرة:</div></p>
+            </div>
+            <div>
+                <ol style="margin-left: 20px; line-height: 1.9;">
+                    <li><strong>Risk Assessment:</strong> Analyze threats, vulnerabilities, asset impacts, and countermeasures.
+                    <div class="arabic-text"><strong>1. تقييم المخاطر:</strong> تحليل التهديدات، الثغرات، تأثيرات الأصول، والتدابير المضادة.</div></li>
+                    <li><strong>Test and Review:</strong> Examination of controls against requirements (e.g., <span class="term-key">vulnerability scanning, audit of controls</span>).
+                    <div class="arabic-text"><strong>2. الاختبار والمراجعة:</strong> فحص الضوابط مقابل المتطلبات (مثل <span class="term-key">فحص الثغرات، تدقيق الضوابط</span>).</div></li>
+                    <li><strong>Risk Mitigation:</strong> Reducing risk by implementing safeguards and additional controls.
+                    <div class="arabic-text"><strong>3. تخفيف المخاطر:</strong> تقليل المخاطر عن طريق تنفيذ ضمانات وضوابط إضافية.</div></li>
+                    <li><strong>Operational Security:</strong> Day-to-day security operations (<span class="term-key">patches, incident handling, training</span>).
+                    <div class="arabic-text"><strong>4. الأمن التشغيلي:</strong> العمليات الأمنية اليومية (<span class="term-key">التحديثات، التعامل مع الحوادث، التدريب</span>).</div></li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SECTION 5: QUANTITATIVE VS QUALITATIVE -->
+        <h2 class="section-title">5. Quantitative vs. Qualitative Analysis <div class="arabic-text">5. التحليل الكمي مقابل التحليل النوعي</div></h2>
+        <div class="card grid-2">
+            <div style="background: rgba(34, 197, 94, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(34, 197, 94, 0.3);">
+                <h3><span class="badge-tag badge-quant">Quantitative</span> Analysis <div class="arabic-text" style="display:inline; border:none; padding:0; margin:0;">(التحليل الكمي)</div></h3>
+                <p>Relies on specific formulas and calculations to determine security risk in <strong>dollar figures ($)</strong> (e.g., Annual Loss Expectancy).
+                <div class="arabic-text">يعتمد على صيغ وحسابات محددة لتحديد الخطر الأمني <strong>بأرقام مالية ($)</strong> (مثل الخسارة السنوية المتوقعة).</div></p>
+                <br>
+                <p style="color: #4ade80;"><strong>Advantages:</strong> <span class="arabic-text" style="display:inline; border:none;">(المزايا:)</span></p>
+                <ul style="margin-left:20px; font-size:0.95rem;">
+                    <li><strong>Objective:</strong> Predetermined formulas reduce subjective bias.
+                    <div class="arabic-text"><strong>موضوعي:</strong> الصيغ المحددة مسبقاً تقلل من التحيز الشخصي.</div></li>
+                    <li><strong>Real Numbers:</strong> Expressed in dollar values.
+                    <div class="arabic-text"><strong>أرقام حقيقية:</strong> يُعبر عنها بقيم مالية.</div></li>
+                    <li><strong>Easily Understood:</strong> Simple clear math outcomes.
+                    <div class="arabic-text"><strong>سهل الفهم:</strong> نتائج رياضية واضحة وبسيطة.</div></li>
+                    <li><strong>Meaningful Statistics:</strong> Helps track changes over time.
+                    <div class="arabic-text"><strong>إحصائيات ذات مغزى:</strong> تساعد في تتبع التغييرات بمرور الوقت.</div></li>
+                    <li><strong>Credible:</strong> Statements like "$3.16 million loss" carry weight.
+                    <div class="arabic-text"><strong>موثوق (ذو مصداقية):</strong> تصريحات مثل "خسارة 3.16 مليون دولار" لها وزن كبير.</div></li>
+                </ul>
+                <br>
+                <p style="color: #f87171;"><strong>Disadvantages:</strong> <span class="arabic-text" style="display:inline; border:none;">(العيوب:)</span></p>
+                <ul style="margin-left:20px; font-size:0.95rem;">
+                    <li><strong>Complex:</strong> Requires experienced project members.
+                    <div class="arabic-text"><strong>معقد:</strong> يتطلب أعضاء مشروع ذوي خبرة.</div></li>
+                    <li><strong>Labor-Intensive:</strong> Huge amount of data gathering.
+                    <div class="arabic-text"><strong>مكثف العمالة:</strong> يتطلب كمية ضخمة من جمع البيانات.</div></li>
+                    <li><strong style="color: #ef4444;">False Sense of Accuracy:</strong> (Biggest flaw!) Output looks exact, but input variables are often based on guesswork.
+                    <div class="arabic-text"><strong>إحساس كاذب بالدقة:</strong> (أكبر عيب!) المخرجات تبدو دقيقة، لكن المدخلات غالباً ما تعتمد على التخمين.</div></li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(168, 85, 247, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(168, 85, 247, 0.3);">
+                <h3><span class="badge-tag badge-qual">Qualitative</span> Analysis <div class="arabic-text" style="display:inline; border:none; padding:0; margin:0;">(التحليل النوعي)</div></h3>
+                <p>Relies on subjective judgment and descriptive terms like <strong>"High", "Medium", "Low"</strong> using lookup charts/tables.
+                <div class="arabic-text">يعتمد على الحكم الشخصي ومصطلحات وصفية مثل <strong>"عالي"، "متوسط"، "منخفض"</strong> باستخدام جداول ومصفوفات بحث.</div></p>
+                <br>
+                <p style="color: #4ade80;"><strong>Advantages:</strong> <span class="arabic-text" style="display:inline; border:none;">(المزايا:)</span></p>
+                <ul style="margin-left:20px; font-size:0.95rem;">
+                    <li><strong>Simple:</strong> Relief from quantitative complex data gathering.
+                    <div class="arabic-text"><strong>بسيط:</strong> يريح من جمع البيانات الكمية المعقدة.</div></li>
+                    <li><strong>Simple Measurement:</strong> Easy for teams to agree an email server outage is a "Major Loss".
+                    <div class="arabic-text"><strong>قياس بسيط:</strong> من السهل على الفرق الاتفاق على أن انقطاع خادم الإيميل يمثل "خسارة كبرى".</div></li>
+                    <li><strong>Easy to Convey:</strong> Simple descriptive terms.
+                    <div class="arabic-text"><strong>سهل التوصيل:</strong> مصطلحات وصفية بسيطة.</div></li>
+                    <li><strong>Adequate Identification:</strong> Sufficient to prioritize security posture fixes.
+                    <div class="arabic-text"><strong>تحديد كافٍ:</strong> يكفي لترتيب أولويات إصلاحات الوضع الأمني.</div></li>
+                </ul>
+                <br>
+                <p style="color: #f87171;"><strong>Disadvantages:</strong> <span class="arabic-text" style="display:inline; border:none;">(العيوب:)</span></p>
+                <ul style="margin-left:20px; font-size:0.95rem;">
+                    <li><strong>Subjective Results:</strong> Based on opinion/experience, open to debate.
+                    <div class="arabic-text"><strong>نتائج ذاتية (غير موضوعية):</strong> مبنية على الرأي/الخبرة، وقابلة للنقاش.</div></li>
+                    <li><strong>Subjective Recommendations:</strong> Harder to defend to management.
+                    <div class="arabic-text"><strong>توصيات ذاتية:</strong> يصعب الدفاع عنها أمام الإدارة.</div></li>
+                    <li><strong>Hard to Track:</strong> Difficult to measure progress from "high-medium" to "medium-low".
+                    <div class="arabic-text"><strong>صعب التتبع:</strong> من الصعب قياس التقدم من "عالي-متوسط" إلى "متوسط-منخفض".</div></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- QUALITATIVE LOOKUP MATRIX -->
+        <div class="card" onclick="addXP(10)">
+            <h3><i class="fas fa-table-cells" style="color:var(--accent-primary);"></i> Qualitative Risk Determination Matrix (Slide 14) <div class="arabic-text">مصفوفة تحديد المخاطر النوعية (شريحة 14)</div></h3>
+            <p>Example: Impact Severity Level 2 + Vulnerability Likelihood C (Conceivable) = <strong style="color:var(--highlight-yellow);">Risk Level II</strong>.
+            <div class="arabic-text">مثال: مستوى خطورة الأثر 2 + احتمالية الثغرة C (ممكن) = <strong style="color:var(--highlight-yellow);">مستوى الخطر II</strong>.</div></p>
+            <div style="overflow-x: auto; margin-top: 10px;">
+                <table>
+                    <tr>
+                        <th>Impact Severity<div class="arabic-text">خطورة الأثر</div></th>
+                        <th>A - Frequent<div class="arabic-text">متكرر</div></th>
+                        <th>B - Probable<div class="arabic-text">محتمل</div></th>
+                        <th>C - Conceivable<div class="arabic-text">ممكن / متصور</div></th>
+                        <th>D - Improbable<div class="arabic-text">غير محتمل</div></th>
+                        <th>E - Remote<div class="arabic-text">بعيد / نادر</div></th>
+                    </tr>
+                    <tr><td><strong>1 (Critical)</strong><div class="arabic-text">حرج</div></td><td style="color:#ef4444; font-weight:700;">Risk I</td><td style="color:#ef4444; font-weight:700;">Risk I</td><td style="color:#ef4444; font-weight:700;">Risk I</td><td style="color:#f97316; font-weight:700;">Risk II</td><td style="color:#facc15; font-weight:700;">Risk III</td></tr>
+                    <tr><td><strong>2 (Major)</strong><div class="arabic-text">كبير</div></td><td style="color:#ef4444; font-weight:700;">Risk I</td><td style="color:#ef4444; font-weight:700;">Risk I</td><td style="color:#f97316; font-weight:700;">Risk II</td><td style="color:#f97316; font-weight:700;">Risk II</td><td style="color:#facc15; font-weight:700;">Risk III</td></tr>
+                    <tr><td><strong>3 (Minor)</strong><div class="arabic-text">طفيف</div></td><td style="color:#ef4444; font-weight:700;">Risk I</td><td style="color:#f97316; font-weight:700;">Risk II</td><td style="color:#f97316; font-weight:700;">Risk II</td><td style="color:#facc15; font-weight:700;">Risk III</td><td style="color:#facc15; font-weight:700;">Risk III</td></tr>
+                    <tr><td><strong>4 (Negligible)</strong><div class="arabic-text">مهمل</div></td><td style="color:#facc15; font-weight:700;">Risk III</td><td style="color:#facc15; font-weight:700;">Risk III</td><td style="color:#84cc16; font-weight:700;">Risk IV</td><td style="color:#84cc16; font-weight:700;">Risk IV</td><td style="color:#84cc16; font-weight:700;">Risk IV</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 6: QUANTITATIVE FORMULAS & CALCULATOR -->
+        <h2 class="section-title">6. Quantitative Formulas & Worked Calculator <div class="arabic-text">6. المعادلات الكميّة والحاسبة التفاعلية</div></h2>
+        <div class="card grid-2">
+            <div>
+                <h3><i class="fas fa-calculator" style="color:var(--accent-primary);"></i> Formulas Breakdown <div class="arabic-text">تفصيل المعادلات</div></h3>
+                <div class="highlight-def">
+                    <strong>Single Loss Expectancy (SLE):</strong> Expected loss from 1 incident.<br>
+                    <div class="arabic-text"><strong>توقع الخسارة الفردية (SLE):</strong> الخسارة المتوقعة من حادث واحد.</div>
+                    <code style="color:var(--accent-primary); font-size:1.1rem; font-weight:700;">SLE = Asset Value ($) × Exposure Factor (%)</code><br>
+                    <small><em>EF (Exposure Factor) = % of asset value lost in one incident.</em></small>
+                    <div class="arabic-text"><small><em>عامل التعرض (EF) = النسبة المئوية لقيمة الأصل المفقودة في حادث واحد.</em></small></div>
+                </div>
+                <div class="highlight-def">
+                    <strong>Annual Loss Expectancy (ALE):</strong> Total expected loss per year.<br>
+                    <div class="arabic-text"><strong>توقع الخسارة السنوية (ALE):</strong> إجمالي الخسارة المتوقعة في السنة.</div>
+                    <code style="color:var(--accent-primary); font-size:1.1rem; font-weight:700;">ALE = SLE × ARO</code><br>
+                    <small><em>ARO (Annual Rate of Occurrence) = Incident frequency per year.</em></small>
+                    <div class="arabic-text"><small><em>المعدل السنوي للحدوث (ARO) = تكرار الحادث في السنة الواحدة.</em></small></div>
+                </div>
+                <button class="btn-action" onclick="loadLecturePreset()" style="width:100%; margin-top:10px;">
+                    <i class="fas fa-bolt"></i> Load Slide 27 Example ($200k Server)
+                    <div class="arabic-text">تحميل مثال الشريحة 27 (خادم بـ 200 ألف $)</div>
+                </button>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.4); padding:20px; border-radius:10px; border:1px dashed var(--accent-primary);">
+                <h3>Live Interactive Calculator <div class="arabic-text">حاسبة تفاعلية مباشرة</div></h3>
+                <div class="calc-input">
+                    <label>Asset Value ($) <span class="arabic-text" style="display:inline; border:none; padding:0;">(قيمة الأصل $)</span></label>
+                    <input type="number" id="assetVal" placeholder="e.g. 200000">
+                </div>
+                <div class="calc-input">
+                    <label>Exposure Factor (EF decimal, e.g. 0.25 for 25%) <span class="arabic-text" style="display:inline; border:none; padding:0;">(عامل التعرض العشري)</span></label>
+                    <input type="number" id="efVal" step="0.01" placeholder="e.g. 0.25">
+                </div>
+                <div class="calc-input">
+                    <label>Annual Rate of Occurrence (ARO) <span class="arabic-text" style="display:inline; border:none; padding:0;">(معدل الحدوث السنوي)</span></label>
+                    <input type="number" id="aroVal" step="0.1" placeholder="e.g. 0.4">
+                </div>
+                <button class="btn-action" onclick="calculateFinancialRisk()" style="width:100%;">Calculate SLE & ALE <div class="arabic-text">حساب SLE و ALE</div></button>
+                <div id="calc-out" class="calc-result-box" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- SECTION 7: METHODOLOGY METHOD COMPARISON -->
+        <h2 class="section-title">7. Cyber Risk Assessment Methodologies (The Big 5) <div class="arabic-text">7. منهجيات تقييم المخاطر السيبرانية (الخمس الكبرى)</div></h2>
+        <div class="card" style="overflow-x: auto;">
+            <p style="margin-bottom: 12px; font-size:0.95rem; color:var(--text-secondary);">
+                All security risk assessment processes share basic elements: <span class="term-key">Threat Analysis, Asset Valuation, Vulnerability Analysis, Security Risk Evaluation</span>.
+                <div class="arabic-text" style="margin-bottom: 15px;">تتشارك جميع عمليات تقييم المخاطر الأمنية في عناصر أساسية: <span class="term-key">تحليل التهديد، تقييم الأصول، تحليل الثغرات، وتقييم الخطر الأمني</span>.</div>
+            </p>
+            <table>
+                <tr>
+                    <th>Methodology<div class="arabic-text">المنهجية</div></th>
+                    <th>Developer<div class="arabic-text">المُطوّر</div></th>
+                    <th>Type<div class="arabic-text">النوع</div></th>
+                    <th>Approach Phases & Resources<div class="arabic-text">مراحل النهج والموارد</div></th>
+                    <th>Application & Notes<div class="arabic-text">التطبيق والملاحظات</div></th>
+                </tr>
+                <tr>
+                    <td><strong>FAA SRM</strong><br><small>(Security Risk Management)</small></td>
+                    <td>Federal Aviation Administration (FAA)<div class="arabic-text">إدارة الطيران الفيدرالية</div></td>
+                    <td><span class="badge-tag badge-qual">Open Qualitative</span><div class="arabic-text" style="margin-top:5px; font-size:0.8rem;">نوعي مفتوح</div></td>
+                    <td><strong>10-Step Process</strong><br><em>Resources:</em> Program & Facility Managers, IPT Leaders, Security Reps.
+                    <div class="arabic-text"><strong>عملية من 10 خطوات</strong><br><em>الموارد:</em> مدراء البرامج والمرافق، قادة الفرق، الممثلون الأمنيون.</div></td>
+                    <td>Required for FAA projects; General purpose. <em>Limitation:</em> Lacks examples/templates.
+                    <div class="arabic-text">مطلوب لمشاريع FAA؛ ذو غرض عام. <em>القيود:</em> يفتقر للأمثلة/القوالب.</div></td>
+                </tr>
+                <tr>
+                    <td><strong>OCTAVE</strong></td>
+                    <td>SEI at Carnegie Mellon University<div class="arabic-text">جامعة كارنيجي ميلون</div></td>
+                    <td><span class="badge-tag badge-qual">Open Qualitative</span><div class="arabic-text" style="margin-top:5px; font-size:0.8rem;">نوعي مفتوح</div></td>
+                    <td><strong>3 Phases:</strong> Profile threats/assets, Identify infrastructure vulns, Develop security strategy.<br><em>Resources:</em> Internal non-experts.
+                    <div class="arabic-text"><strong>3 مراحل:</strong> تحديد التهديدات/الأصول، تحديد ثغرات البنية التحتية، تطوير استراتيجية أمنية.<br><em>الموارد:</em> غير خبراء داخليين.</div></td>
+                    <td>Large corporations with ability to run their own vulnerability assessment tools.
+                    <div class="arabic-text">الشركات الكبيرة القادرة على تشغيل أدوات تقييم الثغرات الخاصة بها.</div></td>
+                </tr>
+                <tr>
+                    <td><strong>FRAP</strong><br><small>(Facilitated Risk Assessment)</small></td>
+                    <td>Tom Peltier<div class="arabic-text">توم بيلتيير</div></td>
+                    <td><span class="badge-tag badge-quant">Open Quantitative</span><div class="arabic-text" style="margin-top:5px; font-size:0.8rem;">كمّي مفتوح</div></td>
+                    <td><strong>3 Steps:</strong> Pre-FRAP meeting, FRAP session, Post-FRAP.<br><em>Resources:</em> Facilitator & internal manager.<br><strong>Time:</strong> ≤ 10 Days.
+                    <div class="arabic-text"><strong>3 خطوات:</strong> ما قبل الجلسة، الجلسة، ما بعد الجلسة.<br><em>الموارد:</em> مُيسّر ومدير داخلي.<br><strong>الوقت:</strong> أقل من 10 أيام.</div></td>
+                    <td>Gap and initial assessments where time is of the essence.
+                    <div class="arabic-text">التقييمات المبدئية وتحديد الفجوات حيث يكون الوقت عاملاً حاسماً.</div></td>
+                </tr>
+                <tr>
+                    <td><strong>CRAMM</strong></td>
+                    <td>UK Govt (CCTA)<div class="arabic-text">حكومة المملكة المتحدة</div></td>
+                    <td><span class="badge-tag badge-qual">Commercial Qualitative</span><div class="arabic-text" style="margin-top:5px; font-size:0.8rem;">نوعي تجاري</div></td>
+                    <td><strong>3 Stages:</strong> Asset Identification, Threat & Vuln Assessment, Countermeasure Recommendation.<br><em>Resources:</em> Experienced practitioners.
+                    <div class="arabic-text"><strong>3 مراحل:</strong> تحديد الأصول، تقييم التهديدات والثغرات، التوصية بالتدابير المضادة.<br><em>الموارد:</em> ممارسون ذوو خبرة.</div></td>
+                    <td>Demonstrating compliance with standards like <strong>BS 7799</strong>.
+                    <div class="arabic-text">إثبات الامتثال لمعايير مثل <strong>BS 7799</strong>.</div></td>
+                </tr>
+                <tr>
+                    <td><strong>NSA IAM</strong><br><small>(InfoSec Assessment Meth.)</small></td>
+                    <td>U.S. National Security Agency (NSA)<div class="arabic-text">وكالة الأمن القومي الأمريكية</div></td>
+                    <td><span class="badge-tag badge-qual">Open Qualitative</span><div class="arabic-text" style="margin-top:5px; font-size:0.8rem;">نوعي مفتوح</div></td>
+                    <td><strong>3 Phases:</strong> Pre-assessment, On-site visit, Post-assessment.<br><em>Resources:</em> IAM-trained providers.
+                    <div class="arabic-text"><strong>3 مراحل:</strong> ما قبل التقييم، زيارة ميدانية، ما بعد التقييم.<br><em>الموارد:</em> مزودون مدربون على IAM.</div></td>
+                    <td>Government agencies & critical infrastructure required to meet <strong>PDD 63</strong>.
+                    <div class="arabic-text">الوكالات الحكومية والبنية التحتية الحرجة المطالبة بتلبية توجيه <strong>PDD 63</strong>.</div></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- SECTION 8: FULL CHAPTER QUIZ -->
+        <h2 class="section-title">8. Comprehensive Chapter Quiz (10 Questions) <div class="arabic-text">8. اختبار شامل للفصل (10 أسئلة)</div></h2>
+        <div class="card" id="quiz-box">
+            <!-- Q1 -->
+            <div class="quiz-q" id="q1">
+                <h3>1. Which security driver is reactive and strictly focuses on what is already known and documented?
+                <div class="arabic-text">1. أي دافع أمني يعتبر تفاعلياً ويركز بصرامة على ما هو معروف وموثق بالفعل؟</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q1', this, false)">A. Technology-Driven <div class="arabic-text">مدفوع بالتكنولوجيا</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q1', this, true)">B. Audit-Driven <div class="arabic-text">مدفوع بالتدقيق</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q1', this, false)">C. Compliance-Driven <div class="arabic-text">مدفوع بالامتثال</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q1', this, false)">D. Risk-Driven <div class="arabic-text">مدفوع بالمخاطر</div></div>
+                <div class="quiz-feedback"><strong>Correct!</strong> Audit-driven is reactive and looks at known/documented issues (Slide 4).<div class="arabic-text"><strong>صحيح!</strong> الدافع التدقيقي (Audit-driven) هو تفاعلي وينظر في المشاكل المعروفة/الموثقة (الشريحة 4).</div></div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="quiz-q" id="q2" style="display:none;">
+                <h3>2. A flaw or oversight in an existing control that allows exploitation is a:
+                <div class="arabic-text">2. خلل أو سهو في ضابط حالي يسمح بالاستغلال هو:</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q2', this, true)">A. Vulnerability <div class="arabic-text">الثغرة (Vulnerability)</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q2', this, false)">B. Threat Agent <div class="arabic-text">عامل التهديد (Threat Agent)</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q2', this, false)">C. Security Risk <div class="arabic-text">الخطر الأمني (Security Risk)</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q2', this, false)">D. Asset <div class="arabic-text">الأصل (Asset)</div></div>
+                <div class="quiz-feedback"><strong>Correct!</strong> Vulnerability is the flaw or oversight (Slide 5).<div class="arabic-text"><strong>صحيح!</strong> الثغرة هي الخلل أو السهو (الشريحة 5).</div></div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="quiz-q" id="q3" style="display:none;">
+                <h3>3. What is the biggest disadvantage of Quantitative Analysis?
+                <div class="arabic-text">3. ما هو أكبر عيب للتحليل الكمي (Quantitative Analysis)؟</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q3', this, false)">A. It gives subjective results <div class="arabic-text">يعطي نتائج ذاتية</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q3', this, true)">B. It creates a False Sense of Accuracy <div class="arabic-text">يخلق إحساساً كاذباً بالدقة</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q3', this, false)">C. It cannot be used in dollar figures <div class="arabic-text">لا يمكن استخدامه بالقيم المالية</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q3', this, false)">D. It is too simple <div class="arabic-text">بسيط جداً</div></div>
+                <div class="quiz-feedback"><strong>Correct!</strong> The output looks precise ($), but inputs are often guesswork (Slide 12).<div class="arabic-text"><strong>صحيح!</strong> تبدو المخرجات دقيقة ($)، لكن المدخلات غالباً ما تكون تخمينية (الشريحة 12).</div></div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="quiz-q" id="q4" style="display:none;">
+                <h3>4. If Asset Value = $100,000, Exposure Factor (EF) = 20%, and ARO = 0.5, what is the ALE?
+                <div class="arabic-text">4. إذا كانت قيمة الأصل = 100,000 دولار، وعامل التعرض = 20%، و ARO = 0.5، فما هو ALE؟</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q4', this, false)">A. $20,000</div>
+                <div class="quiz-option" onclick="evalQuiz('q4', this, true)">B. $10,000</div>
+                <div class="quiz-option" onclick="evalQuiz('q4', this, false)">C. $50,000</div>
+                <div class="quiz-option" onclick="evalQuiz('q4', this, false)">D. $5,000</div>
+                <div class="quiz-feedback"><strong>Correct!</strong> SLE = 100k × 0.20 = $20,000. ALE = 20k × 0.5 = $10,000 (Slide 9).<div class="arabic-text"><strong>صحيح!</strong> SLE = 100 ألف × 0.20 = 20,000 دولار. ALE = 20 ألف × 0.5 = 10,000 دولار (الشريحة 9).</div></div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="quiz-q" id="q5" style="display:none;">
+                <h3>5. Which methodology is an Open Quantitative method designed to be completed within 10 days?
+                <div class="arabic-text">5. أي منهجية تعتبر طريقة كمّيّة مفتوحة ومصممة لتكتمل خلال 10 أيام؟</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q5', this, true)">A. FRAP</div>
+                <div class="quiz-option" onclick="evalQuiz('q5', this, false)">B. OCTAVE</div>
+                <div class="quiz-option" onclick="evalQuiz('q5', this, false)">C. FAA SRM</div>
+                <div class="quiz-option" onclick="evalQuiz('q5', this, false)">D. CRAMM</div>
+                <div class="quiz-feedback"><strong>Correct!</strong> FRAP by Tom Peltier is quantitative and completed within 10 days (Slide 22).<div class="arabic-text"><strong>صحيح!</strong> منهجية FRAP كمية وتُنجز خلال 10 أيام (الشريحة 22).</div></div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="quiz-q" id="q6" style="display:none;">
+                <h3>6. OCTAVE was developed by Carnegie Mellon University specifically for:
+                <div class="arabic-text">6. تم تطوير OCTAVE بواسطة جامعة كارنيجي ميلون خصيصاً من أجل:</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q6', this, false)">A. External government auditors <div class="arabic-text">مدققي الحكومة الخارجيين</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q6', this, true)">B. Small internal non-expert teams in large corporations <div class="arabic-text">فرق داخلية صغيرة غير خبيرة في الشركات الكبيرة</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q6', this, false)">C. Aviation safety facilities <div class="arabic-text">مرافق سلامة الطيران</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q6', this, false)">D. Financial institutions strictly <div class="arabic-text">المؤسسات المالية حصراً</div></div>
+                <div class="quiz-feedback"><strong>Correct!</strong> OCTAVE is designed to be run internally by non-experts (Slide 21).<div class="arabic-text"><strong>صحيح!</strong> OCTAVE مصممة ليتم تشغيلها داخلياً بواسطة غير الخبراء (الشريحة 21).</div></div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="quiz-q" id="q7" style="display:none;">
+                <h3>7. CRAMM is often used to demonstrate compliance with which standard?
+                <div class="arabic-text">7. غالباً ما تُستخدم CRAMM لإثبات الامتثال لأي معيار؟</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q7', this, false)">A. PDD 63</div>
+                <div class="quiz-option" onclick="evalQuiz('q7', this, false)">B. HIPAA</div>
+                <div class="quiz-option" onclick="evalQuiz('q7', this, true)">C. BS 7799</div>
+                <div class="quiz-option" onclick="evalQuiz('q7', this, false)">D. PCI DSS</div>
+                <div class="quiz-feedback"><strong>Correct!</strong> CRAMM is used for BS 7799 compliance (Slide 23).<div class="arabic-text"><strong>صحيح!</strong> تُستخدم CRAMM للامتثال لمعيار BS 7799 (الشريحة 23).</div></div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="quiz-q" id="q8" style="display:none;">
+                <h3>8. NSA IAM requires which type of assessors to perform the methodology?
+                <div class="arabic-text">8. منهجية NSA IAM تتطلب أي نوع من المُقيّمين لتنفيذها؟</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q8', this, false)">A. Program Managers <div class="arabic-text">مدراء البرامج</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q8', this, true)">B. IAM-trained providers <div class="arabic-text">مزودون مدربون على IAM</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q8', this, false)">C. Internal non-experts <div class="arabic-text">غير خبراء داخليين</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q8', this, false)">D. Any certified accountant <div class="arabic-text">أي محاسب معتمد</div></div>
+                <div class="quiz-feedback"><strong>Correct!</strong> NSA IAM requires IAM-trained providers (Slide 24).<div class="arabic-text"><strong>صحيح!</strong> تتطلب المنهجية مزودين مدربين (الشريحة 24).</div></div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="quiz-q" id="q9" style="display:none;">
+                <h3>9. Day-to-day implementation such as "Patches, Incident handling, and Training" belongs to:
+                <div class="arabic-text">9. التنفيذ اليومي مثل "التحديثات، التعامل مع الحوادث، والتدريب" ينتمي إلى:</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q9', this, false)">A. Test and Review <div class="arabic-text">الاختبار والمراجعة</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q9', this, false)">B. Risk Mitigation <div class="arabic-text">تخفيف المخاطر</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q9', this, true)">C. Operational Security <div class="arabic-text">الأمن التشغيلي</div></div>
+                <div class="quiz-option" onclick="evalQuiz('q9', this, false)">D. Risk Assessment <div class="arabic-text">تقييم المخاطر</div></div>
+                <div class="quiz-feedback"><strong>Correct!</strong> Operational Security covers day-to-day tasks (Slide 7).<div class="arabic-text"><strong>صحيح!</strong> الأمن التشغيلي يغطي المهام اليومية (الشريحة 7).</div></div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="quiz-q" id="q10" style="display:none;">
+                <h3>10. In the Slide 27 Worked Example ($200,000 server, EF 25%, ARO 0.4), what is the SLE and ALE?
+                <div class="arabic-text">10. في مثال الشريحة 27 (خادم بـ 200,000 دولار، EF 25%، ARO 0.4)، ما هو SLE و ALE؟</div></h3>
+                <div class="quiz-option" onclick="evalQuiz('q10', this, true)">A. SLE = $50,000 ; ALE = $20,000</div>
+                <div class="quiz-option" onclick="evalQuiz('q10', this, false)">B. SLE = $20,000 ; ALE = $50,000</div>
+                <div class="quiz-option" onclick="evalQuiz('q10', this, false)">C. SLE = $50,000 ; ALE = $10,000</div>
+                <div class="quiz-option" onclick="evalQuiz('q10', this, false)">D. SLE = $100,000 ; ALE = $40,000</div>
+                <div class="quiz-feedback"><strong>Correct!</strong> SLE = $200k × 0.25 = $50,000. ALE = $50k × 0.4 = $20,000 per year (Slide 27).<div class="arabic-text"><strong>صحيح!</strong> حساب الخسارة الفردية 50,000 والسنوية 20,000 دولار.</div></div>
+            </div>
+
+            <button id="next-q-btn" class="btn-action" style="display:none; margin-top:15px; width:100%;" onclick="nextQuizStep()">
+                Next Question <i class="fas fa-arrow-right"></i>
+                <div class="arabic-text">السؤال التالي <i class="fas fa-arrow-left"></i></div>
+            </button>
+            
+            <div id="quiz-done" style="display:none; text-align:center; padding: 25px;">
+                <h2 style="color:var(--highlight-yellow);">🏆 EXCELLENT WORK! <div class="arabic-text">عمل ممتاز!</div></h2>
+                <p style="font-size:1.1rem; margin-top:10px;">You have mastered CYBS 4305 Lecture 03! <div class="arabic-text">لقد أتقنت محاضرة 03 بنجاح!</div></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT ENGINE -->
+    <script>
+        // --- TRANSLATION TOGGLE ---
+        function toggleTranslation() {
+            document.body.classList.toggle('hide-arabic');
+        }
+
+        // --- GAMIFICATION HUD ---
+        let xp = 0; let level = 1;
+        function addXP(amount) {
+            xp += amount;
+            document.getElementById('xp-counter').innerText = xp;
+            if (xp >= level * 800) {
+                level++;
+                document.getElementById('level').innerText = level;
+            }
+        }
+
+        // --- THEME ENGINE WITH TIMER CONTROLS ---
+        const themes = [
+            'theme-cyberpunk', 'theme-matrix', 'theme-synthwave', 
+            'theme-deepsea', 'theme-emerald', 'theme-crimson', 'theme-violet'
+        ];
+        let currentThemeIdx = 0;
+        let timerSeconds = 30;
+        let isTimerRunning = true;
+        let timerInterval = null;
+
+        function applyTheme(idx) {
+            // Check current translation state
+            const hasHiddenArabic = document.body.classList.contains('hide-arabic');
+            
+            document.body.className = '';
+            
+            // Reapply translation state
+            if (hasHiddenArabic) {
+                document.body.classList.add('hide-arabic');
+            }
+
+            currentThemeIdx = (idx + themes.length) % themes.length;
+            document.body.classList.add(themes[currentThemeIdx]);
+
+            // Flash effect
+            const flash = document.getElementById('flash');
+            flash.classList.add('flash-active');
+            setTimeout(() => flash.classList.remove('flash-active'), 250);
+        }
+
+        function nextTheme() {
+            timerSeconds = 30;
+            applyTheme(currentThemeIdx + 1);
+        }
+
+        function prevTheme() {
+            timerSeconds = 30;
+            applyTheme(currentThemeIdx - 1);
+        }
+
+        function toggleTimer() {
+            isTimerRunning = !isTimerRunning;
+            const btn = document.getElementById('timer-toggle-btn');
+            if (isTimerRunning) {
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+                btn.title = "Pause Theme Timer";
+            } else {
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+                btn.title = "Play Theme Timer";
+            }
+        }
+
+        function startThemeTimer() {
+            timerInterval = setInterval(() => {
+                if (isTimerRunning) {
+                    timerSeconds--;
+                    document.getElementById('time-left').innerText = timerSeconds;
+                    document.getElementById('timer-fill').style.width = (timerSeconds / 30 * 100) + '%';
+
+                    if (timerSeconds <= 0) {
+                        timerSeconds = 30;
+                        nextTheme();
+                    }
+                }
+            }, 1000);
+        }
+
+        // --- AUDIO PLAYER (MUSIC ONLY, NO SFX) ---
+        const audio = document.getElementById('bg-music');
+        let isPlaying = false;
+
+        function toggleAudio() {
+            const btn = document.getElementById('play-btn');
+            if (isPlaying) {
+                audio.pause();
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                audio.play();
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        function changeVolume() {
+            audio.volume = document.getElementById('vol-slider').value;
+        }
+
+        // --- CALCULATOR LOGIC ---
+        function loadLecturePreset() {
+            document.getElementById('assetVal').value = 200000;
+            document.getElementById('efVal').value = 0.25;
+            document.getElementById('aroVal').value = 0.4;
+            calculateFinancialRisk();
+            addXP(15);
+        }
+
+        function calculateFinancialRisk() {
+            let asset = parseFloat(document.getElementById('assetVal').value);
+            let ef = parseFloat(document.getElementById('efVal').value);
+            let aro = parseFloat(document.getElementById('aroVal').value);
+
+            if (isNaN(asset) || isNaN(ef) || isNaN(aro)) return;
+
+            let sle = asset * ef;
+            let ale = sle * aro;
+
+            let outBox = document.getElementById('calc-out');
+            outBox.style.display = 'block';
+            outBox.innerHTML = `SLE = $${sle.toLocaleString()} <br> ALE = $${ale.toLocaleString()} / year <div class="arabic-text">الخسارة الفردية المتوقعة = $${sle.toLocaleString()} <br> الخسارة السنوية المتوقعة = $${ale.toLocaleString()} / سنوياً</div>`;
+            addXP(25);
+        }
+
+        // --- QUIZ ENGINE ---
+        let currentQ = 1;
+        function evalQuiz(qId, elem, isCorrect) {
+            let parent = document.getElementById(qId);
+            let options = parent.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+
+            if (isCorrect) {
+                elem.classList.add('correct');
+                addXP(100);
+            } else {
+                elem.classList.add('wrong');
+                options.forEach(opt => {
+                    if (opt.getAttribute('onclick').includes('true')) opt.classList.add('correct');
+                });
+            }
+
+            parent.querySelector('.quiz-feedback').style.display = 'block';
+
+            if (currentQ < 10) {
+                document.getElementById('next-q-btn').style.display = 'block';
+            } else {
+                document.getElementById('quiz-done').style.display = 'block';
+                addXP(500);
+            }
+        }
+
+        function nextQuizStep() {
+            document.getElementById('q' + currentQ).style.display = 'none';
+            currentQ++;
+            document.getElementById('q' + currentQ).style.display = 'block';
+            document.getElementById('next-q-btn').style.display = 'none';
+        }
+
+        // --- BACKGROUND CANVAS ANIMATION ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let particles = Array.from({ length: 80 }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 1.2,
+            vy: (Math.random() - 0.5) * 1.2
+        }));
+
+        const columns = Math.floor(window.innerWidth / 22);
+        const drops = Array(columns).fill(1);
+        let timeFrame = 0;
+
+        function renderCanvas() {
+            const theme = document.body.className;
+            let compStyle = window.getComputedStyle(document.body);
+            let accent = compStyle.getPropertyValue('--accent-primary').trim() || '#38bdf8';
+
+            if (theme.includes('matrix')) {
+                ctx.fillStyle = 'rgba(2, 10, 2, 0.12)';
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = accent;
+                ctx.font = '14px monospace';
+                for (let i = 0; i < drops.length; i++) {
+                    const char = String.fromCharCode(Math.random() * 128);
+                    ctx.fillText(char, i * 22, drops[i] * 22);
+                    if (drops[i] * 22 > height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                }
+            } else if (theme.includes('synthwave')) {
+                ctx.clearRect(0, 0, width, height);
+                ctx.strokeStyle = accent;
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                for (let y = height / 2; y < height; y += (y - height / 2) * 0.12 + 2) {
+                    let moveY = y + (timeFrame % 25);
+                    if (moveY > height) continue;
+                    ctx.moveTo(0, moveY); ctx.lineTo(width, moveY);
+                }
+                for (let x = -width; x < width * 2; x += 90) {
+                    ctx.moveTo(width / 2, height / 2); ctx.lineTo(x, height);
+                }
+                ctx.stroke();
+            } else {
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = accent;
+                ctx.lineWidth = 0.5;
+
+                for (let i = 0; i < particles.length; i++) {
+                    let p = particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > width) p.vx *= -1;
+                    if (p.y < 0 || p.y > height) p.vy *= -1;
+
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2); ctx.fill();
+
+                    for (let j = i + 1; j < particles.length; j++) {
+                        let p2 = particles[j];
+                        let dx = p.x - p2.x, dy = p.y - p2.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 90) {
+                            ctx.strokeStyle = accent;
+                            ctx.globalAlpha = 1 - (dist / 90);
+                            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+                            ctx.globalAlpha = 1.0;
+                        }
+                    }
+                }
+            }
+
+            timeFrame++;
+            requestAnimationFrame(renderCanvas);
+        }
+
+        function initApp() {
+            audio.volume = 0.3;
+            startThemeTimer();
+            renderCanvas();
+            console.log("CYBS 4305 Master App Loaded Successfully (Bilingual Edition).");
+        }
+    </script>
+</body>
+</html>
